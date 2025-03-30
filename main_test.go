@@ -25,6 +25,7 @@ import (
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	csrf "github.com/utrack/gin-csrf"
+	"spurt-cms/logger"
 )
 
 func TestSetupRouting(t *testing.T) {
@@ -36,9 +37,9 @@ func TestSetupRouting(t *testing.T) {
 			routes.SetupRoutes().ServeHTTP(response, request)
 			switch {
 			case response.Code == http.StatusOK:
-				fmt.Println("running the given status request:", t.Name())
+				logger.Info(fmt.Sprintf("%v", "running the given status request:", t.Name()))
 			case response.Code == http.StatusMovedPermanently:
-				fmt.Println("running the given status request:", t.Name())
+				logger.Info(fmt.Sprintf("%v", "running the given status request:", t.Name()))
 			default:
 				t.Fatalf("expected %d or %d, got %d", http.StatusOK, http.StatusMovedPermanently, response.Code)
 			}
@@ -720,7 +721,7 @@ func TestDeleteMember(t *testing.T) {
 
 	token, _, _ := controllers.NewAuth.Checklogin("Admin", "Admin@123", controllers.TenantId)
 
-	fmt.Println(token, "token")
+	logger.Info(fmt.Sprintf("%v", token, "token"))
 
 	U := r.Group("/member") // Assuming your routes are under this group
 	{
@@ -770,7 +771,7 @@ func TestLanguageList(t *testing.T) {
 	r.LoadHTMLFiles(htmlfiles...)
 
 	token, _, _ := controllers.NewAuth.Checklogin("Admin", "Admin@123", controllers.TenantId)
-	fmt.Println(token, "token101")
+	logger.Info(fmt.Sprintf("%v", token, "token101"))
 	json_folder := "locales/"
 
 	var default_lang models.TblLanguage
@@ -1039,7 +1040,7 @@ func TestDeleteRole(t *testing.T) {
 
 	token, _, _ := controllers.NewAuth.Checklogin("Admin", "Admin@123", controllers.TenantId)
 
-	fmt.Println(token, "token")
+	logger.Info(fmt.Sprintf("%v", token, "token"))
 
 	U := r.Group("/settings/roles") // Assuming your routes are under this group
 	{
@@ -3934,7 +3935,7 @@ func TestImportData(t *testing.T) {
 		log.Println(err)
 	}
 
-	fmt.Println(buf, "zipfile")
+	logger.Info(fmt.Sprintf("%v", buf, "zipfile"))
 
 	formFile := make(map[string][]*multipart.FileHeader)
 	formFile["image"] = []*multipart.FileHeader{

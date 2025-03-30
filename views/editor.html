@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpurtCMS Editor</title>
+    <link rel="stylesheet" href="/public/css/editor.css">
+</head>
+<body>
+    <div id="editor-container"></div>
+    
+    <!-- Load the editor configuration first -->
+    <script src="/public/js/editor-config.js"></script>
+    
+    <!-- Then load the editor script -->
+    <script src="/public/js/app.js"></script>
+    
+    <script>
+        // Initialize the editor with the configuration
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the upload URL configuration from the global config
+            const uploadConfig = window.spurtEditorConfig?.imageUpload || {
+                path: window.location.origin + "/uploadb64image",
+                payload: "imagedata",
+                success: {
+                    imagepath: "imagepath",
+                    imagename: "imagename"
+                }
+            };
+            
+            // Initialize the editor with the dynamic URL
+            if (window.SpurtEditor) {
+                const editor = new SpurtEditor('#editor-container', {
+                    uploadUrl: uploadConfig
+                });
+            }
+        });
+    </script>
+</body>
+</html>

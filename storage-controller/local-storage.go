@@ -47,7 +47,7 @@ func LocalStorageCreation() {
 
 	if err != nil {
 		//need to handle
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 
 	if storagetype.Local != "" {
@@ -96,7 +96,7 @@ func MediaLocalList(search, folderpath string) ([]Medias, []Medias, error) {
 
 	storagetype, err := GetSelectedType()
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 
 	var Path string
@@ -182,7 +182,7 @@ func AddFolderMakeDir(name string, folderpath string) error {
 
 	storagetype, err := GetSelectedType()
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 
 	if name != "" {
@@ -201,7 +201,7 @@ func UploadImageLocal(file multipart.File, fileHeader *multipart.FileHeader, fil
 
 	storagetype, serr := GetSelectedType()
 	if serr != nil {
-		fmt.Println(serr)
+		logger.Info(fmt.Sprintf("%v", serr))
 	}
 
 	pathEnv := storagetype.Local + "/media/"
@@ -230,7 +230,7 @@ func UploadCropImage(imageData, imagename string) (path string) {
 
 	storagetype, serr := GetSelectedType()
 	if serr != nil {
-		fmt.Println(serr)
+		logger.Info(fmt.Sprintf("%v", serr))
 	}
 
 	Path := storagetype.Local + "/media/"
@@ -258,14 +258,14 @@ func ConvertBase64WithName(imageData string, storagepath string, imagename strin
 	decode, err := base64.StdEncoding.DecodeString(base64data)
 
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 	file, err := os.Create(storagePath)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 	if _, err := file.Write(decode); err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 
 	return imageName, storagePath, err
@@ -284,7 +284,7 @@ func DeleteImageFolder(folderpath, name string) error {
 
 	if serr != nil {
 
-		fmt.Println(serr)
+		logger.Info(fmt.Sprintf("%v", serr))
 
 	}
 
@@ -311,13 +311,13 @@ func FolderDetails(folderpath string) (folderCount int, fileCount int, Folder []
 
 	storagetype, serr := GetSelectedType()
 	if serr != nil {
-		fmt.Println(serr)
+		logger.Info(fmt.Sprintf("%v", serr))
 	}
 
 	Path := storagetype.Local + "/media/"
 	entries, err := os.ReadDir(Path + folderpath)
 	if err != nil {
-		fmt.Printf("FolderDetails Error : %s/n", err)
+		logger.Info(fmt.Sprintf("FolderDetails Error : %s/n", err))
 	}
 
 	for _, e := range entries {
@@ -350,4 +350,42 @@ func FolderDetails(folderpath string) (folderCount int, fileCount int, Folder []
 	}
 
 	return folderCount, fileCount, Folder, File, nil
+}
+func UploadCropImageLocal(fileName string, filePath string, imageByte []byte) error {
+	storagetype, serr := GetSelectedType()
+	if serr != nil {
+		return fmt.Errorf("failed to get storage type: %v", serr)
+	}
+
+	if storagetype.Local == "" {
+		return fmt.Errorf("local storage path is not configured in database")
+	}
+
+	Path := storagetype.Local + "/media/"
+	
+	// Create directories if they don't exist
+	dirPath := Path + strings.TrimSuffix(filePath, fileName)
+	if err := os.MkdirAll(dirPath, 0755); err != nil {
+		return fmt.Errorf("failed to create directory %s: %v", dirPath, err)
+	}
+	
+	fullPath := Path + filePath
+	
+	// Check if directory is writable
+	if _, err := os.Stat(dirPath); err != nil {
+		return fmt.Errorf("directory access error: %v", err)
+	}
+	
+	// Write the file
+	file, err := os.Create(fullPath)
+	if err != nil {
+		return fmt.Errorf("failed to create file %s: %v", fullPath, err)
+	}
+	defer file.Close()
+	
+	if _, err := file.Write(imageByte); err != nil {
+		return fmt.Errorf("failed to write to file %s: %v", fullPath, err)
+	}
+	
+	return nil
 }

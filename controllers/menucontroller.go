@@ -328,9 +328,9 @@ func NewMenuController(c *gin.Context) USR {
 
 	// for _, val := range Final {
 
-	// 	fmt.Println(val)
+	// 	logger.Info(fmt.Sprintf("%v", val))
 
-	// 	fmt.Println()
+	// 	logger.Info(fmt.Sprintf("%v", ))
 	// }
 
 	models.GetPersonalize(&personalize_data, userid, TenantId)

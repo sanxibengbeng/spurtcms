@@ -13,6 +13,7 @@ import (
 	logPkg "spurt-cms/graphql/logger"
 	"spurt-cms/graphql/model"
 	"spurt-cms/models"
+	"spurt-cms/logger"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -225,7 +226,7 @@ func ImageResize(c *gin.Context) {
 
 	if err != nil {
 
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 
 		c.AbortWithError(500, fmt.Errorf("%v-%v", info.ErrGetAwsCreds, err))
 
@@ -238,7 +239,7 @@ func ImageResize(c *gin.Context) {
 
 	if err != nil {
 
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 
 		c.AbortWithError(500, fmt.Errorf("%v-%v", info.ErrGetImage, err))
 
@@ -273,7 +274,7 @@ func ImageResize(c *gin.Context) {
 
 	if err != nil {
 
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 
 		c.AbortWithError(500, fmt.Errorf("%v-%v", info.ErrDecodeImg, err))
 
@@ -288,7 +289,7 @@ func ImageResize(c *gin.Context) {
 
 		if err != nil {
 
-			fmt.Println(err)
+			logger.Error("Error occurred", logger.WithError(err))
 
 			c.AbortWithError(500, fmt.Errorf("%v-%v", info.ErrImageResize, err))
 
@@ -302,7 +303,7 @@ func ImageResize(c *gin.Context) {
 
 		if err != nil {
 
-			fmt.Println(err)
+			logger.Error("Error occurred", logger.WithError(err))
 
 			c.AbortWithError(500, fmt.Errorf("%v-%v", info.ErrImageResize, err))
 
@@ -328,7 +329,7 @@ func GetObjectFromS3(AwsCredentials map[string]interface{}, key string) (*s3.Get
 
 	if err != nil {
 
-		fmt.Printf("Error get object %s: %s\n", key, err)
+		logger.Info(fmt.Sprintf("Error get object %s: %s\n", key, err))
 
 		return nil, err
 	}

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"spurt-cms/models"
 	"strconv"
 	"strings"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	csrf "github.com/utrack/gin-csrf"
+	"spurt-cms/logger"
 )
 
 func EmailTemplate(c *gin.Context) {
@@ -99,7 +99,7 @@ func UpdateTemplate(c *gin.Context) {
 		url      string
 	)
 
-	fmt.Println("Test")
+	logger.Info("Test")
 
 	pageno := c.PostForm("pageno")
 	pathname := c.PostForm("pathname")

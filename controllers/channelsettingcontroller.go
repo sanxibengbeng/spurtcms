@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	csrf "github.com/utrack/gin-csrf"
+	"spurt-cms/logger"
 )
 
 func ChannelSettingView(c *gin.Context) {
@@ -80,7 +81,7 @@ func ChannelSettingUpdate(c *gin.Context) {
 		log.Println(err)
 	}
 
-	fmt.Println("templatedata", templatedata)
+	logger.Info(fmt.Sprintf("%v", "templatedata", templatedata))
 
 	userid := c.GetInt("userid")
 

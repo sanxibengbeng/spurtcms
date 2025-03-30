@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spurtcms/channels"
 	"gorm.io/gorm"
+	"spurt-cms/logger"
 )
 
 func ChannelList(ctx context.Context, filter *model.Filter, sort *model.Sort) (*model.ChannelDetails, error) {
@@ -372,7 +373,7 @@ func ChannelEntriesList(ctx context.Context, commonFilter *model.Filter, sort *m
 		}
 	}
 
-	// fmt.Printf("limit: %v,offset: %v,isActive: %v,order: %v,sort: %v,title: %v,keyword: %v,channelid: %v,categoryid: %v,categorySlug: %v,status: %v,memflag: %v,categoryFlag: %v,authorflag: %v,fieldsFlag: %v\n", limit, offset, isActive, order, sortBy, title, keyword, channelId, categoryId, categorySlug, status, memberProfFlag, categoriesFlag, authorFlag, fieldsFlg)
+	// logger.Info(fmt.Sprintf("limit: %v,offset: %v,isActive: %v,order: %v,sort: %v,title: %v,keyword: %v,channelid: %v,categoryid: %v,categorySlug: %v,status: %v,memflag: %v,categoryFlag: %v,authorflag: %v,fieldsFlag: %v\n", limit, offset, isActive, order, sortBy, title, keyword, channelId, categoryId, categorySlug, status, memberProfFlag, categoriesFlag, authorFlag, fieldsFlg))
 
 	inputs := channels.EntriesInputs{
 		ChannelId:              channelId,
@@ -787,7 +788,7 @@ func ChannelEntryDetail(ctx context.Context, id *int, slug *string, additionalDa
 		chanId = *channelId
 	}
 
-	fmt.Println("chaannan", chanId)
+	logger.Info(fmt.Sprintf("%v", "chaannan", chanId))
 
 	if additionalData != nil {
 
@@ -832,7 +833,7 @@ func ChannelEntryDetail(ctx context.Context, id *int, slug *string, additionalDa
 
 	channelEntry, _, err := ChannelConfigWP.FetchChannelEntryDetail(inputs, nil)
 
-	fmt.Println("aithorDetails", channelEntry.AuthorDetail.CreatedOn)
+	logger.Info(fmt.Sprintf("%v", "aithorDetails", channelEntry.AuthorDetail.CreatedOn))
 
 	switch {
 
@@ -1101,7 +1102,7 @@ func ChannelEntryDetail(ctx context.Context, id *int, slug *string, additionalDa
 		convChannelEntry.ContentChunk = &model.Chunk{Data: []string{channelEntry.Description}, Length: 1}
 	}
 
-	fmt.Println("aouthoorrr", convChannelEntry.AuthorDetails.CreatedOn)
+	logger.Info(fmt.Sprintf("%v", "aouthoorrr", convChannelEntry.AuthorDetails.CreatedOn))
 
 	return &convChannelEntry, nil
 }

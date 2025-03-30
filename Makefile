@@ -1,5 +1,7 @@
 run:
-	go run main.go
+	docker-compose down    
+	docker-compose build
+	docker-compose up -d
 
 buildwithview:
 	mkdir build
@@ -18,3 +20,19 @@ permission:
 
 start:
 	sudo systemctl start spurtcms-admin
+
+test:
+	go test ./... -v
+
+test-coverage:
+	go test ./... -coverprofile=coverage.out
+	go tool cover -html=coverage.out
+
+test-short:
+	go test ./... -short
+
+clean:
+	rm -f spurtcms-admin
+	rm -f coverage.out
+
+.PHONY: run buildwithview build permission start test test-coverage test-short clean

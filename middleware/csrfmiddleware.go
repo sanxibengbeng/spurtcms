@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"spurt-cms/controllers"
+	"spurt-cms/logger"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -25,7 +26,7 @@ func CSRFAuth() gin.HandlerFunc {
 				sess, err := controllers.Store.Get(c.Request, os.Getenv("SESSION_KEY"))
 
 				if err != nil {
-					fmt.Println(err)
+					logger.Error("CSRF session error", logger.WithError(err))
 				}
 				sess.Values["token"] = ""
 
@@ -33,7 +34,7 @@ func CSRFAuth() gin.HandlerFunc {
 
 				er := sess.Save(c.Request, c.Writer)
 				if er != nil {
-					fmt.Println(er)
+					logger.Error("Failed to save session", logger.WithError(er))
 				}
 				c.Abort()
 
@@ -41,7 +42,7 @@ func CSRFAuth() gin.HandlerFunc {
 
 				c.SetCookie("Alert-msg", "Internal Server Error", 3600, "", "", false, false)
 
-				fmt.Println("csrf token mismatch")
+				logger.Warn("CSRF token mismatch detected")
 
 				c.Redirect(301, "/")
 

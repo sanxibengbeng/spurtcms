@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"spurt-cms/models"
 	"strconv"
 	"strings"
@@ -9,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spurtcms/channels"
 	csrf "github.com/utrack/gin-csrf"
+	"spurt-cms/logger"
 )
 
 func ListTemplates(c *gin.Context) {
@@ -150,7 +150,7 @@ func ListTemplates(c *gin.Context) {
 
 func Templates(c *gin.Context) {
 
-	fmt.Println("Dhanush")
+	logger.Info("Dhanush")
 	c.HTML(200, "template.html", gin.H{"Name": "Dhanush"})
 
 }

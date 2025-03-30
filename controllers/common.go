@@ -34,6 +34,7 @@ import (
 	"github.com/spurtcms/team"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"spurt-cms/logger"
 )
 
 type RouteMod struct {
@@ -99,7 +100,7 @@ func GenerateEmail(email, subject string, data map[string]interface{}, message s
 	models.GetMail(&mail, TenantId)
 
 	if mail.SmtpConfig != nil && mail.SelectedType == "smtp" {
-		fmt.Println("")
+		logger.Info("")
 
 		Mail = mail.SmtpConfig["Mail"].(string)
 		Password = mail.SmtpConfig["Password"].(string)
@@ -111,7 +112,7 @@ func GenerateEmail(email, subject string, data map[string]interface{}, message s
 		Password = os.Getenv("MAIL_PASSWORD")
 		Host = os.Getenv("MAIL_HOST")
 		Port = os.Getenv("MAIL_PORT")
-		fmt.Println("envvv", Mail, Password, Host, Port)
+		logger.Info(fmt.Sprintf("%v", "envvv", Mail, Password, Host, Port))
 	}
 
 	contentType := "text/html"
@@ -126,14 +127,14 @@ func GenerateEmail(email, subject string, data map[string]interface{}, message s
 	// err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{email}, []byte(emailBody))
 	err := smtp.SendMail(Host+":"+Port, auth, Mail, []string{email}, []byte(emailBody))
 
-	fmt.Println("reach", err)
+	logger.Info(fmt.Sprintf("%v", "reach", err))
 
 	if err != nil {
 		ErrorLog.Printf("Failed to send email error : %s", err)
 		return err
 	}
 
-	fmt.Println("Email sent successfully to:", email)
+	logger.Info(fmt.Sprintf("%v", "Email sent successfully to:", email))
 	return nil
 }
 
@@ -145,7 +146,7 @@ func GenerateOwndeskEmail(email, subject, message string, wg *sync.WaitGroup) er
 
 	t, err2 := template.ParseFiles("view/email/owndesk-template.html")
 	if err2 != nil {
-		fmt.Println(err2)
+		logger.Info(fmt.Sprintf("%v", err2))
 	}
 
 	var tpl bytes.Buffer
@@ -192,10 +193,10 @@ func GenerateOwndeskEmail(email, subject, message string, wg *sync.WaitGroup) er
 	err := smtp.SendMail(Host+":"+Port, auth, Mail, []string{email}, []byte(emailBody))
 
 	if err != nil {
-		fmt.Println("Failed to send email:", err)
+		logger.Info(fmt.Sprintf("%v", "Failed to send email:", err))
 		return err
 	} else {
-		fmt.Println("Email sent successfully to:", email)
+		logger.Info(fmt.Sprintf("%v", "Email sent successfully to:", email))
 		return nil
 	}
 
@@ -240,23 +241,23 @@ func ConvertBase64(imageData string, storagepath string) (imgname string, path s
 	imageName := "IMG-" + rand_num + "." + ext
 	err = os.MkdirAll(storagepath, 0777)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 		return "", "", err
 	}
 	storagePath := storagepath + "/IMG-" + rand_num + "." + ext
 	decode, err := base64.StdEncoding.DecodeString(base64data)
 
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 		return "", "", err
 	}
 	file, err := os.Create(storagePath)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 		return "", "", err
 	}
 	if _, err := file.Write(decode); err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 		return "", "", err
 	}
 
@@ -274,7 +275,7 @@ func ConvertBase64toByte(imageData string, storagepath string) (imgname string, 
 	decode, err := base64.StdEncoding.DecodeString(base64data)
 
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 
 	return imageName, storagePath, decode, nil
@@ -293,14 +294,14 @@ func ConvertBase64WithName(imageData string, storagepath string, imagename strin
 	decode, err := base64.StdEncoding.DecodeString(base64data)
 
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 	file, err := os.Create(storagePath)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 	if _, err := file.Write(decode); err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 
 	return imageName, storagePath, err
@@ -319,14 +320,14 @@ func ConvertBase64WithName1(imageData string, imagename string) (imgname string,
 	decode, err := base64.StdEncoding.DecodeString(base64data)
 
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 	file, err := os.Create(storagePath)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 	if _, err := file.Write(decode); err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 
 	return imageName, storagePath, err
@@ -453,7 +454,7 @@ func ChangePasswordEmail(Chan chan<- string, wg *sync.WaitGroup, data map[string
 		"{Password}", data["password"].(string),
 	)
 
-	fmt.Println(email, sub, msg, replacer, "alldatamail")
+	logger.Info(fmt.Sprintf("%v", email, sub, msg, replacer, "alldatamail"))
 	msg = replacer.Replace(msg)
 	GenerateEmail(email, sub, data, msg, wg)
 }
@@ -495,7 +496,7 @@ func MemberCreateEmail(Chan chan<- string, wg *sync.WaitGroup, data map[string]i
 
 func MemberActivationEmail(Chan chan<- string, wg *sync.WaitGroup, data map[string]interface{}, email, action string) {
 
-	fmt.Println("activationmailll")
+	logger.Info("activationmailll")
 	var templates models.TblEmailTemplate
 
 	models.GetTemplates(&templates, "memberactivation", TenantId)
@@ -550,19 +551,19 @@ func ForgetPasswordEmail(Chan chan<- string, wg *sync.WaitGroup, data map[string
 	)
 	msg = replacer.Replace(msg)
 
-	fmt.Println(email, sub, data, "emaildetails")
+	logger.Info(fmt.Sprintf("%v", email, sub, data, "emaildetails"))
 	GenerateEmail(email, sub, data, msg, wg)
 }
 func safeGetString(data map[string]interface{}, key string) string {
 
-	fmt.Println("safestring")
+	logger.Info("safestring")
 	if value, exists := data[key]; exists {
 		if strValue, ok := value.(string); ok {
 			return strValue
 		}
-		fmt.Printf("Warning: Value for key '%s' is not a string\n", key)
+		logger.Info(fmt.Sprintf("Warning: Value for key '%s' is not a string\n", key))
 	} else {
-		fmt.Printf("Warning: Key '%s' does not exist in data\n", key)
+		logger.Info(fmt.Sprintf("Warning: Key '%s' does not exist in data\n", key))
 	}
 	return "" // Return an empty string if the key doesn't exist or is not a string
 }
@@ -811,7 +812,7 @@ func SaveFileInLocal(c *gin.Context) {
 
 	if err != nil {
 
-		fmt.Println("err :", err)
+		logger.Info(fmt.Sprintf("%v", "err :", err))
 
 		c.AbortWithStatus(400)
 
@@ -823,7 +824,7 @@ func SaveFileInLocal(c *gin.Context) {
 
 	if err != nil {
 
-		fmt.Println("err:", err)
+		logger.Info(fmt.Sprintf("%v", "err:", err))
 
 		c.AbortWithStatus(400)
 
@@ -842,7 +843,7 @@ func SaveFileInLocal(c *gin.Context) {
 
 	if err != nil {
 
-		fmt.Println("err:", err)
+		logger.Info(fmt.Sprintf("%v", "err:", err))
 
 		c.AbortWithStatus(400)
 
@@ -855,7 +856,7 @@ func SaveFileInLocal(c *gin.Context) {
 
 	if err != nil {
 
-		fmt.Println("err:", err)
+		logger.Info(fmt.Sprintf("%v", "err:", err))
 
 		c.AbortWithStatus(400)
 
@@ -866,7 +867,7 @@ func SaveFileInLocal(c *gin.Context) {
 
 	if err != nil {
 
-		fmt.Println("err:", err)
+		logger.Info(fmt.Sprintf("%v", "err:", err))
 
 		c.AbortWithStatus(400)
 
@@ -875,7 +876,7 @@ func SaveFileInLocal(c *gin.Context) {
 
 	if _, err := file.Write(decode); err != nil {
 
-		fmt.Println("err:", err)
+		logger.Info(fmt.Sprintf("%v", "err:", err))
 
 		c.AbortWithStatus(400)
 
@@ -909,12 +910,26 @@ func EditroImageSave(c *gin.Context) {
 
 		imagePath = tenantDetails.S3FolderName + imagePath
 
-		uerr := storagecontroller.UploadCropImageS3(imageName, imagePath, imageByte)
+		// Get the selected storage type for better error reporting
+		storageType, stErr := storagecontroller.GetSelectedType()
+		if stErr != nil {
+			ErrorLog.Printf("failed to get storage type: %s", stErr)
+			c.JSON(200, gin.H{"Error": "Failed to determine storage type. Please check your database configuration.", "Details": stErr.Error()})
+			return
+		}
+		
+		ErrorLog.Printf("Using storage type: %s", storageType.SelectedType)
+		
+		// Use the storage handler to upload the image based on selected storage type
+		uerr := storagecontroller.UploadImage(imageName, imagePath, imageByte)
 
 		if uerr != nil {
-
-			c.JSON(200, gin.H{"Error": "Invalid or missing S3 credentials. Please verify your configuration and try again."})
-
+			ErrorLog.Printf("upload image error with storage type %s: %s", storageType.SelectedType, uerr)
+			c.JSON(200, gin.H{
+				"Error": "Failed to upload image. Please verify your storage configuration and try again.",
+				"StorageType": storageType.SelectedType,
+				"Details": uerr.Error(),
+			})
 			return
 		}
 		imagePath = baseurl + "image-resize?name=" + imagePath
@@ -994,7 +1009,7 @@ func CreateTenantDefaultData(userId, tenantId int) error {
 					return err
 				}
 
-				fmt.Println("mid", moduleId)
+				logger.Info(fmt.Sprintf("%v", "mid", moduleId))
 
 				if strings.Contains(query, "mid") {
 
@@ -1038,7 +1053,7 @@ func CreateTenantDefaultData(userId, tenantId int) error {
 				}
 			case strings.Contains(lowerQuery, "tbl_templates") && strings.Contains(lowerQuery, "insert into"):
 
-				fmt.Println("Enter", lowerQuery)
+				logger.Info(fmt.Sprintf("%v", "Enter", lowerQuery))
 				if err = db.Debug().Table("tbl_template_modules").Where("is_deleted = 0 and tenant_id = ?", tenantId).Pluck("id", &templateModuleId).Error; err != nil {
 					return err
 
@@ -1132,7 +1147,7 @@ func CreateTenantDefaultData(userId, tenantId int) error {
 
 				if err = db.Debug().Exec(finalQuery).Error; err != nil {
 
-					fmt.Println("enter err", err)
+					logger.Info(fmt.Sprintf("%v", "enter err", err))
 
 					return err
 				}
@@ -1202,13 +1217,13 @@ func UploadFilesToS3(c *gin.Context) {
 
 	path := strings.TrimSuffix(c.PostForm("path"), "/")
 
-	fmt.Println("path", path)
+	logger.Info(fmt.Sprintf("%v", "path", path))
 
 	multipartHeader, err := c.FormFile("file")
 
 	if err != nil {
 
-		fmt.Println("failed to get file")
+		logger.Info("failed to get file")
 
 		c.JSON(200, gin.H{"messgae": "failed to get file", "status": 0, "path": ""})
 
@@ -1219,7 +1234,7 @@ func UploadFilesToS3(c *gin.Context) {
 
 	if err != nil {
 
-		fmt.Println("failed to open file")
+		logger.Info("failed to open file")
 
 		c.JSON(200, gin.H{"messgae": "failed to open file", "status": 0, "path": ""})
 
@@ -1232,7 +1247,7 @@ func UploadFilesToS3(c *gin.Context) {
 
 	if err != nil {
 
-		fmt.Println("failed to upload file to the s3")
+		logger.Info("failed to upload file to the s3")
 
 		c.JSON(200, gin.H{"messgae": "failed to upload file to the s3", "status": 0, "path": ""})
 
@@ -1244,42 +1259,88 @@ func UploadFilesToS3(c *gin.Context) {
 
 // view image
 func ResizeImage(c *gin.Context) {
-
 	fileName := c.Query("name")
 	filePath := c.Query("path")
 	width, _ := strconv.ParseUint(c.Query("width"), 10, 64)
 	height, _ := strconv.ParseUint(c.Query("height"), 10, 64)
 	extention := path.Ext(fileName)
-
-	rawObject, err := storagecontroller.GetObjectFromS3(filePath + fileName)
-
+	
+	// Get the storage type to determine how to retrieve the image
+	storageType, err := storagecontroller.GetSelectedType()
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Failed to get storage type", logger.WithError(err))
+		c.String(http.StatusInternalServerError, "Failed to determine storage type")
 		return
 	}
-
-	var buf bytes.Buffer
-
-	buf.ReadFrom(rawObject.Body)
-
+	
+	var imageBytes []byte
+	
+	// Use the appropriate method based on storage type
+	switch storageType.SelectedType {
+	case "local":
+		// For local storage
+		var storagePath string
+		if storageType.Local != "" {
+			storagePath = storageType.Local + "/media/" + fileName
+		} else {
+			storagePath = "./storage/media/" + fileName
+		}
+		
+		fileData, err := os.ReadFile(storagePath)
+		if err != nil {
+			logger.Error("Failed to read local file", logger.WithError(err))
+			c.String(http.StatusNotFound, "Image not found")
+			return
+		}
+		imageBytes = fileData
+		
+	case "aws":
+		// For AWS S3 storage
+		rawObject, err := storagecontroller.GetObjectFromS3(filePath + fileName)
+		if err != nil {
+			logger.Error("Error retrieving from S3", logger.WithError(err))
+			c.String(http.StatusNotFound, "Image not found in S3")
+			return
+		}
+		
+		var buf bytes.Buffer
+		buf.ReadFrom(rawObject.Body)
+		imageBytes = buf.Bytes()
+		
+	default:
+		logger.Error("Unsupported storage type", logger.WithField("type", storageType.SelectedType))
+		c.String(http.StatusInternalServerError, "Unsupported storage configuration")
+		return
+	}
+	
+	// Handle SVG files directly
 	if extention == ".svg" {
-		svgData := buf.String()
-		c.Data(http.StatusOK, "image/svg+xml", []byte(svgData))
+		c.Data(http.StatusOK, "image/svg+xml", imageBytes)
 		return
 	}
-
-	Image, _, erri := image.Decode(bytes.NewReader(buf.Bytes()))
+	
+	// Process other image types
+	Image, _, erri := image.Decode(bytes.NewReader(imageBytes))
 	if erri != nil {
-		fmt.Println(erri)
+		logger.Error("Failed to decode image", logger.WithError(erri))
+		c.String(http.StatusInternalServerError, "Failed to process image")
 		return
 	}
-
-	newImage := resize.Resize(uint(width), uint(height), Image, resize.Lanczos3)
+	
+	// Only resize if width or height is specified
+	var newImage image.Image
+	if width > 0 || height > 0 {
+		newImage = resize.Resize(uint(width), uint(height), Image, resize.Lanczos3)
+	} else {
+		newImage = Image
+	}
+	
+	// Encode based on image type
 	if extention == ".png" {
 		png.Encode(c.Writer, newImage)
 		return
 	}
-
+	
 	if extention == ".jpeg" || extention == ".jpg" {
 		_ = jpeg.Encode(c.Writer, newImage, nil)
 	}
@@ -1293,7 +1354,7 @@ func GetSelectedType() (storagetyp models.TblStorageType, err error) {
 
 	if err != nil {
 
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 
 		return models.TblStorageType{}, err
 	}
@@ -1330,13 +1391,14 @@ func GetMedia() (Folders []storagecontroller.Medias, Files []storagecontroller.M
 
 		resp1, err := storagecontroller.ListS3BucketWithPath("media/")
 
-		nextcont = *resp1.NextContinuationToken
-
 		if err != nil {
-
-			fmt.Println("please check the aws fields")
-
+			logger.Info("please check the aws fields")
 			return []storagecontroller.Medias{}, []storagecontroller.Medias{}, []storagecontroller.Medias{}, nextcont, err
+		}
+		
+		// 安全检查，确保 NextContinuationToken 不为 nil
+		if resp1 != nil && resp1.NextContinuationToken != nil {
+			nextcont = *resp1.NextContinuationToken
 		}
 
 		Folder, File = MakeFolderandFileArr(resp1, "media/", "")

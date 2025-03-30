@@ -15,6 +15,7 @@ import (
 	mem "github.com/spurtcms/member"
 	"github.com/spurtcms/team"
 	csrf "github.com/utrack/gin-csrf"
+	"spurt-cms/logger"
 )
 
 type Section struct {
@@ -391,9 +392,9 @@ func AllEntries(c *gin.Context) {
 
 		newentrylist, _ = ChannelConfig.EntrylistByParentId(entry.Id, TenantId)
 
-		// fmt.Println(newentrylist, "newentrylist")
+		// logger.Info(fmt.Sprintf("%v", newentrylist, "newentrylist"))
 
-		fmt.Println(entry.ParentId, "channelentrilist")
+		logger.Info(fmt.Sprintf("%v", entry.ParentId, "channelentrilist"))
 		entry.Cno = strconv.Itoa((offset + index) + 1)
 		entry.CreatedDate = entry.CreatedOn.In(TZONE).Format(Datelayout)
 		if !entry.ModifiedOn.IsZero() {
@@ -591,7 +592,7 @@ func PublishEntry(c *gin.Context) {
 	ctTime, _ := time.Parse(layout, createdate)
 	pbTime, _ := time.Parse(layout, publishtime)
 
-	fmt.Println("ctpt", ctTime, pbTime)
+	logger.Info(fmt.Sprintf("%v", "ctpt", ctTime, pbTime))
 
 	categoryidsStr := strings.Join(categoryids, ",")
 
@@ -705,12 +706,12 @@ func PublishEntry(c *gin.Context) {
 			entries.IsActive = 1
 		}
 		Totalentries, totalentriescount, _, _ := ChannelConfig.ChannelEntriesList(chn.Entries{ChannelId: 0, Limit: 0, Offset: 0}, TenantId)
-		fmt.Println("Totalentries", totalentriescount)
+		logger.Info(fmt.Sprintf("%v", "Totalentries", totalentriescount))
 		for index, value := range Totalentries {
 			value.OrderIndex = 2 + index
 
 			_, err := ChannelConfig.UpdateEntryOrderIndex(value.OrderIndex, value.Id, userid, TenantId)
-			fmt.Println("err", err)
+			logger.Info(fmt.Sprintf("%v", "err", err))
 
 		}
 		entries.CreatedBy = userid
@@ -929,9 +930,9 @@ func ImageUpload(c *gin.Context) {
 
 	if err != nil {
 
-		fmt.Println("Error Retrieving the File")
+		logger.Info("Error Retrieving the File")
 
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 
 		return
 	}
@@ -944,13 +945,13 @@ func ImageUpload(c *gin.Context) {
 
 	Filename := tempFile.Name()
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 	defer tempFile.Close()
 
 	fileBytes, err := ioutil.ReadAll(file)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 
 	_, err1 := tempFile.Write(fileBytes)
@@ -1156,7 +1157,7 @@ func Updatechannelfields(c *gin.Context) {
 		DeleteOptionsvalue.Value = val.Value
 		DeleteOptionsvalues = append(DeleteOptionsvalues, DeleteOptionsvalue)
 	}
-	fmt.Println("efcfe", FieldValuess)
+	logger.Info(fmt.Sprintf("%v", "efcfe", FieldValuess))
 	userid := c.GetInt("userid")
 
 	if ederr := ChannelConfig.EditChannel(channelname, channeldesc, userid, channelid, categoryvalue, TenantId); ederr != nil {
@@ -1225,7 +1226,7 @@ func MemberDetails(c *gin.Context) {
 
 		if err != nil {
 
-			fmt.Println(err)
+			logger.Error("Error occurred", logger.WithError(err))
 		}
 		c.JSON(200, memberlist)
 	} else {
@@ -1377,7 +1378,7 @@ func UnpublishSelectedEntry(c *gin.Context) {
 	userid := c.GetInt("userid")
 	geturl := c.PostForm("url")
 	if err := json.Unmarshal([]byte(c.Request.PostFormValue("entryids")), &entrydata); err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 
 	for _, val := range entrydata {
@@ -1454,7 +1455,7 @@ func EntryIsActive(c *gin.Context) {
 
 	id, _ := strconv.Atoi(c.Request.PostFormValue("id"))
 	val, _ := strconv.Atoi(c.Request.PostFormValue("isactive"))
-	fmt.Println("datas", userid, id, val)
+	logger.Info(fmt.Sprintf("%v", "datas", userid, id, val))
 
 	permisison, perr := NewAuth.IsGranted("Entries", auth.Update, TenantId)
 	if perr != nil {
@@ -1489,7 +1490,7 @@ func EntryParentIdUpdate(c *gin.Context) {
 
 	userid := c.GetInt("userid")
 
-	fmt.Println(pid, entryid, "parentid")
+	logger.Info(fmt.Sprintf("%v", pid, entryid, "parentid"))
 
 	permisison, perr := NewAuth.IsGranted("Entries", auth.Update, TenantId)
 	if perr != nil {
@@ -1539,7 +1540,7 @@ func EntryParentIdUpdate(c *gin.Context) {
 
 		entry.AuthorDetail.NameString = user.NameString
 
-		fmt.Println(entry, "entrydetails")
+		logger.Info(fmt.Sprintf("%v", entry, "entrydetails"))
 		if err != nil {
 			ErrorLog.Printf("entry parentid change error: %s", perr)
 			json.NewEncoder(c.Writer).Encode(err)
@@ -1562,7 +1563,7 @@ func EntryReorder(c *gin.Context) {
 
 	pageno, _ := strconv.Atoi(c.PostForm("pageno"))
 
-	fmt.Println(pageno, "pagenooo")
+	logger.Info(fmt.Sprintf("%v", pageno, "pagenooo"))
 
 	if limit == "" {
 		limt = Limit
@@ -1577,11 +1578,11 @@ func EntryReorder(c *gin.Context) {
 		offset = 1
 	}
 
-	fmt.Println(offset, "offsetdetails")
+	logger.Info(fmt.Sprintf("%v", offset, "offsetdetails"))
 
 	neworder := c.PostFormArray("neworder[]")
 
-	fmt.Println(neworder, pageno, "entrydata")
+	logger.Info(fmt.Sprintf("%v", neworder, pageno, "entrydata"))
 	userid := c.GetInt("userid")
 
 	neworderint := make([]int, len(neworder))

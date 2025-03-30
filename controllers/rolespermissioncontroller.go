@@ -10,6 +10,7 @@ import (
 	nauth "github.com/spurtcms/auth"
 	role "github.com/spurtcms/team-roles"
 	csrf "github.com/utrack/gin-csrf"
+	"spurt-cms/logger"
 )
 
 /*Roles list*/
@@ -148,14 +149,14 @@ func RoleCreate(c *gin.Context) {
 	description := c.Request.PostFormValue("roledesc")
 	permissionsid := c.PostFormArray("permissionid[]")
 	roleisactive:= c.Request.PostFormValue("roleisactive")
-	fmt.Println("print",roleisactive)
+	logger.Info(fmt.Sprintf("%v", "print",roleisactive))
 	isactive, err := strconv.Atoi(roleisactive)
 	if err != nil {
 		panic(err)
 	}
 
 
-	fmt.Println("role data", rolename, permissionsid)
+	logger.Info(fmt.Sprintf("%v", "role data", rolename, permissionsid))
 
 	var idi = []int{}
 	if len(permissionsid) > 0 {
@@ -173,7 +174,7 @@ func RoleCreate(c *gin.Context) {
 	idi = append(idi, 1)
 
 	userid := c.GetInt("userid")
-	fmt.Println("dtetet1")
+	logger.Info("dtetet1")
 
 	permisison, perr := NewAuth.IsGranted("Roles & Permissions", nauth.CRUD, TenantId)
 	if perr != nil {
@@ -186,7 +187,7 @@ func RoleCreate(c *gin.Context) {
 	}
 	/*role created*/
 
-	fmt.Println("tetetett2")
+	logger.Info("tetetett2")
 	roledetail, rerr := NewRole.CreateRole(role.RoleCreation{Name: rolename, Description: description, CreatedBy: userid, TenantId: TenantId},isactive)
 	if rerr != nil {
 		ErrorLog.Printf("rolescreate error: %s", rerr)
@@ -419,7 +420,7 @@ func MultiSelectRoleStatus(c *gin.Context) {
 
 	var roledata []map[string]string
 	if err := json.Unmarshal([]byte(c.Request.PostFormValue("roleids")), &roledata); err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 
 	var (
@@ -442,7 +443,7 @@ func MultiSelectRoleStatus(c *gin.Context) {
 
 	}
 
-	fmt.Println("state", status)
+	logger.Info(fmt.Sprintf("%v", "state", status))
 
 	pageno := c.PostForm("page")
 	var url string
@@ -485,7 +486,7 @@ func Chkroleshaveuser(c *gin.Context){
 
 
 	if err := json.Unmarshal([]byte(c.Request.PostFormValue("roleids")), &rolesdata); err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 	for _, val := range rolesdata {
 		roleid, _ := strconv.Atoi(val["roleid"])

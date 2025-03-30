@@ -28,6 +28,7 @@ import (
 	chn "github.com/spurtcms/channels"
 	csrf "github.com/utrack/gin-csrf"
 	"golang.org/x/net/html"
+	"spurt-cms/logger"
 )
 
 type xlhead struct {
@@ -741,7 +742,7 @@ func Export(c *gin.Context) {
 		}
 
 		// Print a success message
-		fmt.Println("Cover images saved as cover_images.zip")
+		logger.Info("Cover images saved as cover_images.zip")
 
 		// Save the Excel file
 		excelFileName := Filechannelname + ".xlsx"
@@ -832,7 +833,7 @@ func Export(c *gin.Context) {
 
 		if err1 != nil {
 
-			fmt.Println(err1)
+			logger.Info(fmt.Sprintf("%v", err1))
 		}
 
 	}
@@ -1046,7 +1047,7 @@ func DownloaderrXlsx(c *gin.Context) {
 			sources, err := ExtractImgSources(val.Description)
 
 			if err != nil {
-				fmt.Println("Error extracting image sources:", err)
+				logger.Info(fmt.Sprintf("%v", "Error extracting image sources:", err))
 				return
 			}
 			permisison, perr := NewAuth.IsGranted("Channels", auth.CRUD, TenantId)

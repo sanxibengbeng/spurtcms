@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	csrf "github.com/utrack/gin-csrf"
+	"spurt-cms/logger"
 )
 
 // set default timezone in general settings
@@ -17,7 +18,7 @@ func SetInitialGeneralValues() {
 
 	tblgeneralsetting, err := models.GetGeneralSettings(TenantId)
 
-	fmt.Println("defaultValues", tblgeneralsetting)
+	logger.Info(fmt.Sprintf("%v", "defaultValues", tblgeneralsetting))
 
 	if err != nil {
 		zone, _ := time.LoadLocation("Asia/Kolkata")
@@ -35,7 +36,7 @@ func SetInitialGeneralValues() {
 	zone, zerr := time.LoadLocation(tblgeneralsetting.TimeZone)
 
 	if zerr != nil {
-		fmt.Println(zerr)
+		logger.Info(fmt.Sprintf("%v", zerr))
 		ErrorLog.Printf("Invalid Timezone Error: %s", err)
 		TZONE = zone
 		return
@@ -49,16 +50,16 @@ func GeneralSettings(c *gin.Context) {
 
 	roleId := c.GetInt("role")
 
-	fmt.Println("roleId", roleId)
+	logger.Info(fmt.Sprintf("%v", "roleId", roleId))
 
-	fmt.Println("tenantIdGetSettings", TenantId)
+	logger.Info(fmt.Sprintf("%v", "tenantIdGetSettings", TenantId))
 
 	tblgeneralsetting, err := models.GetGeneralSettings(TenantId)
 	if err != nil {
 		ErrorLog.Printf("Getting data from general settings Error:%s", err)
 	}
 
-	fmt.Println("dateFormattttt", tblgeneralsetting.DateFormat)
+	logger.Info(fmt.Sprintf("%v", "dateFormattttt", tblgeneralsetting.DateFormat))
 
 	var language1 []models.TblLanguage
 
@@ -152,8 +153,8 @@ func SetTimeZone(timezone string) {
 	zone, err := time.LoadLocation(timezone)
 
 	if err != nil {
-		fmt.Println(ErrLoadLocation)
-		fmt.Println("Set Default UTC")
+		logger.Info(fmt.Sprintf("%v", ErrLoadLocation))
+		logger.Info("Set Default UTC")
 	}
 
 	TZONE = zone
@@ -169,7 +170,7 @@ func UpdateGeneralSettings(c *gin.Context) {
 	timeForamt := c.PostForm("timeformat")
 	timezone := c.PostForm("timezon")
 	languagedefault, _ := strconv.Atoi(c.PostForm("language"))
-	fmt.Println("dateFOrmat", dateFormat)
+	logger.Info(fmt.Sprintf("%v", "dateFOrmat", dateFormat))
 
 	var (
 		imgPath string
@@ -218,7 +219,7 @@ func UpdateGeneralSettings(c *gin.Context) {
 
 			tempString = tenantDetails.S3FolderName + tempString
 
-			err = storagecontroller.UploadCropImageS3(imageName, tempString, imageByte)
+			err = storagecontroller.UploadImage(imageName, tempString, imageByte)
 			if err != nil {
 				ErrorLog.Println(err)
 
@@ -249,10 +250,10 @@ func UpdateGeneralSettings(c *gin.Context) {
 	} else {
 
 		prefixEndIndex := strings.Index(expandimagePath, "=")
-		fmt.Println("prefix", prefixEndIndex)
+		logger.Info(fmt.Sprintf("%v", "prefix", prefixEndIndex))
 
 		prefixRemovedPath := expandimagePath[prefixEndIndex+1:]
-		fmt.Println("prefixRemoved", prefixRemovedPath)
+		logger.Info(fmt.Sprintf("%v", "prefixRemoved", prefixRemovedPath))
 
 		imgPath = prefixRemovedPath
 	}
@@ -263,7 +264,7 @@ func UpdateGeneralSettings(c *gin.Context) {
 	gensetting.LogoPath = imgPath
 	// gensetting.ExpandLogoPath = imgPath
 	gensetting.DateFormat = dateFormat
-	fmt.Println("dateFormat", gensetting.DateFormat)
+	logger.Info(fmt.Sprintf("%v", "dateFormat", gensetting.DateFormat))
 	gensetting.TimeFormat = timeForamt
 	gensetting.TimeZone = timezone
 

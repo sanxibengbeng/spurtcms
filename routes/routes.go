@@ -52,6 +52,10 @@ func SetupRoutes() *gin.Engine {
 	r.POST("/uploadb64image", controllers.EditroImageSave)
 
 	r.POST("/s3upload", controllers.UploadFilesToS3)
+	
+	r.GET("/editor", controllers.EditorController)
+	
+	r.GET("/debug/storage", controllers.DebugStorageController)
 
 	// r.POST("gqlSaveB64Local", controllers.SaveB64InLocal)
 

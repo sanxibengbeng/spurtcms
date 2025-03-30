@@ -11,6 +11,7 @@ import (
 	"spurt-cms/migration/postgres"
 	"strings"
 	"time"
+	"spurt-cms/logger"
 )
 
 func TableMigration() {
@@ -96,7 +97,7 @@ func InsertDefaultValues() {
 
 		if err1 != nil {
 
-			fmt.Println("Error executing query: \nQuery:", err, query)
+			logger.Info(fmt.Sprintf("%v", "Error executing query: \nQuery:", err, query))
 		}
 	}
 
@@ -473,5 +474,5 @@ func InsertDefaultValues() {
 	}
 
 	// S3folderCreation()
-	fmt.Println("SQL file loaded successfully.")
+	logger.Info("SQL file loaded successfully.")
 }

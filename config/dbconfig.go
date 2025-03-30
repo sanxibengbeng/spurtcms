@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"spurt-cms/logger"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
@@ -47,7 +48,7 @@ func SetupDB() *gorm.DB {
 	}
 
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Database connection failed", logger.WithError(err))
 	}
 
 	return db

@@ -4,6 +4,7 @@ import (
 	"spurt-cms/config"
 	"time"
 	"fmt"
+	"spurt-cms/logger"
 )
 
 type Filter struct {
@@ -137,7 +138,7 @@ func TemplateIsActive(template *TblEmailTemplate, id int, val int,_ int) error {
 }
 
 func GetTemplates(template *TblEmailTemplate, key string, tenantid int) error {
-	fmt.Println("tenantsss",tenantid)
+	logger.Info(fmt.Sprintf("%v", "tenantsss",tenantid))
 if tenantid<=0{
 
 	if err := DB.Debug().Table("tbl_email_templates").Where("template_slug=? and is_deleted = 0 ", key).First(&template).Error; err != nil {
@@ -175,7 +176,7 @@ func GetFileLogs(logdata *[]TblImportfileLogs, tenantid int) ([]TblImportfileLog
 }
 
 func GetTemplatesByModuleId(moduleid int, tenantid int) (templates *[]TblEmailTemplate, error bool) {
-	fmt.Println("moduleid",moduleid)
+	logger.Info(fmt.Sprintf("%v", "moduleid",moduleid))
 
 	if err := DB.Debug().Table("tbl_email_templates").Where("is_deleted = 0 and module_id=? and tenant_id=?", moduleid,tenantid).Order("id asc").Find(&templates).Error; err != nil {
 

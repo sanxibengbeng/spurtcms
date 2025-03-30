@@ -1,7 +1,9 @@
 package model
 
-import "fmt"
-
+import (
+	"fmt"
+	"spurt-cms/logger"
+)
 type MembersListReq struct {
 	Limit    int
 	Offset   int
@@ -12,7 +14,7 @@ type MembersListReq struct {
 
 func (model ModelConfig) MembersList(inputs MembersListReq) (members []Members, count int64, err error) {
 
-	fmt.Println(model.DB, inputs.Count, inputs.Limit, "dbvalue")
+	logger.Info(fmt.Sprintf("%v", model.DB, inputs.Count, inputs.Limit, "dbvalue"))
 	query := model.DB.Debug().Table("tbl_members").Where("tbl_members.is_deleted = 0").Order("id desc")
 
 	if inputs.TenantId != -1 {
@@ -53,6 +55,6 @@ func (model ModelConfig) MembersList(inputs MembersListReq) (members []Members, 
 		return []Members{}, 0, err
 	}
 
-	fmt.Println(members, "mmembersss")
+	logger.Info(fmt.Sprintf("%v", members, "mmembersss"))
 	return members, count, nil
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/spurtcms/auth"
 	mem "github.com/spurtcms/member"
 	csrf "github.com/utrack/gin-csrf"
+	"spurt-cms/logger"
 )
 
 func MemberList(c *gin.Context) {
@@ -112,13 +113,13 @@ func MemberList(c *gin.Context) {
 
 		storagetype, err := GetSelectedType()
 		if err != nil {
-			fmt.Printf("member list getting storagetype error: %s", err)
+			logger.Info(fmt.Sprintf("member list getting storagetype error: %s", err))
 		}
 		uper, _ := NewAuth.IsGranted("Member", auth.Update, TenantId)
 
 		dper, _ := NewAuth.IsGranted("Member", auth.Delete, TenantId)
 
-		fmt.Println("list", memberlist)
+		logger.Info(fmt.Sprintf("%v", "list", memberlist))
 
 		c.HTML(200, "members.html", gin.H{"csrf": csrf.GetToken(c), "Pagination": PaginationData{
 			NextPage:     pageno + 1,
@@ -160,7 +161,7 @@ func CreateMember(c *gin.Context) {
 
 		tenantDetails, err := NewTeam.GetTenantDetails(TenantId)
 		if err != nil {
-			fmt.Println(err)
+			logger.Error("Error occurred", logger.WithError(err))
 		}
 
 		var imageByte []byte
@@ -168,14 +169,14 @@ func CreateMember(c *gin.Context) {
 		if imagedata != "" {
 			imageName, imagePath, imageByte, err = ConvertBase64toByte(imagedata, "member")
 			if err != nil {
-				fmt.Println(err)
+				logger.Error("Error occurred", logger.WithError(err))
 			}
 
 			imagePath = tenantDetails.S3FolderName + imagePath
 
-			uerr := storagecontroller.UploadCropImageS3(imageName, imagePath, imageByte)
+			uerr := storagecontroller.UploadImage(imageName, imagePath, imageByte)
 			if uerr != nil {
-				c.SetCookie("Alert-msg", "ERRORAWScredentialsnotfound", 3600, "", "", false, false)
+				c.SetCookie("Alert-msg", "ERRORStorageUploadFailed", 3600, "", "", false, false)
 				c.Redirect(301, "/member/")
 				return
 			}
@@ -388,11 +389,11 @@ func EditMember(c *gin.Context) {
 
 		ModuleName, TabName, _ := ModuleRouteName(c)
 
-		// fmt.Println(ModuleName, "modulename")
+		// logger.Info(fmt.Sprintf("%v", ModuleName, "modulename"))
 
 		storagetype, err := GetSelectedType()
 		if err != nil {
-			fmt.Printf("member list getting storagetype error: %s", err)
+			logger.Info(fmt.Sprintf("member list getting storagetype error: %s", err))
 		}
 
 		c.HTML(200, "memberprofile.html", gin.H{"csrf": csrf.GetToken(c), "Menu": menu, "Member": member, "Group": group, "title": ModuleName, "HeadTitle": translate.Memberss.Members, "translate": translate, "Membermenu": true, "membermenu": true, "MemberProfile": memberprof, "NameString": NameString, "Tabmenu": TabName, "CurrentPage": pageno, "StorageType": storagetype.SelectedType})
@@ -415,7 +416,7 @@ func UpdateMember(c *gin.Context) {
 	}
 
 	var MemberGroupId, _ = strconv.Atoi(c.PostForm("membergroupvalue"))
-	fmt.Println("mem grp id", MemberGroupId)
+	logger.Info(fmt.Sprintf("%v", "mem grp id", MemberGroupId))
 	IsActive, _ := strconv.Atoi(c.PostForm("mem_activestat"))
 	// mailstatus, _ := strconv.Atoi(c.PostForm("mem_emailactive"))
 	imagedata := c.PostForm("crop_data")
@@ -448,7 +449,7 @@ func UpdateMember(c *gin.Context) {
 	} else if storagetype.SelectedType == "aws" {
 		tenantDetails, err := NewTeam.GetTenantDetails(TenantId)
 		if err != nil {
-			fmt.Println(err)
+			logger.Error("Error occurred", logger.WithError(err))
 		}
 
 		if imagedata != "" {
@@ -465,10 +466,10 @@ func UpdateMember(c *gin.Context) {
 
 			imagePath = tenantDetails.S3FolderName + imagePath
 
-			uerr := storagecontroller.UploadCropImageS3(imageName, imagePath, imageByte)
+			uerr := storagecontroller.UploadImage(imageName, imagePath, imageByte)
 			if uerr != nil {
 
-				c.SetCookie("Alert-msg", "ERRORAWScredentialsnotfound", 3600, "", "", false, false)
+				c.SetCookie("Alert-msg", "ERRORStorageUploadFailed", 3600, "", "", false, false)
 				c.Redirect(301, "/member/")
 				return
 
@@ -478,7 +479,7 @@ func UpdateMember(c *gin.Context) {
 		if companylogo != "" {
 			tenantDetails, err := NewTeam.GetTenantDetails(TenantId)
 			if err != nil {
-				fmt.Println(err)
+				logger.Error("Error occurred", logger.WithError(err))
 			}
 
 			var imageByte []byte
@@ -490,10 +491,10 @@ func UpdateMember(c *gin.Context) {
 
 			companystoragepath = tenantDetails.S3FolderName + companystoragepath
 
-			uerr := storagecontroller.UploadCropImageS3(imageName, companystoragepath, imageByte)
+			uerr := storagecontroller.UploadImage(imageName, companystoragepath, imageByte)
 			if uerr != nil {
 
-				c.SetCookie("Alert-msg", "ERRORAWScredentialsnotfound", 3600, "", "", false, false)
+				c.SetCookie("Alert-msg", "ERRORStorageUploadFailed", 3600, "", "", false, false)
 				c.Redirect(301, "/member/")
 				return
 
@@ -603,7 +604,7 @@ func UpdateMember(c *gin.Context) {
 	}
 
 	if err != nil {
-		fmt.Println("member errorsss")
+		logger.Info("member errorsss")
 		ErrorLog.Printf("member update error: %s", err)
 		c.SetCookie("Alert-msg", ErrInternalServerError, 3600, "", "", false, false)
 		c.SetCookie("Alert-msg", "alert", 3600, "", "", false, false)
@@ -612,7 +613,7 @@ func UpdateMember(c *gin.Context) {
 	}
 
 	c.SetCookie("get-toast", "Member Updated Successfully", 3600, "", "", false, false)
-	fmt.Println("member updayte")
+	logger.Info("member updayte")
 	// c.SetCookie("Alert-msg", "success", 3600, "", "", false, false)
 	c.Redirect(301, url)
 
@@ -810,7 +811,7 @@ func MemberStatus(c *gin.Context) {
 
 	id, _ := strconv.Atoi(c.Request.PostFormValue("id"))
 	val, _ := strconv.Atoi(c.Request.PostFormValue("isactive"))
-	fmt.Println("datas", userid, id, val)
+	logger.Info(fmt.Sprintf("%v", "datas", userid, id, val))
 
 	permisison, perr := NewAuth.IsGranted("Member", auth.Update, TenantId)
 	if perr != nil {
@@ -842,7 +843,7 @@ func MultiSelectDeleteMember(c *gin.Context) {
 	var memberdata []map[string]string
 
 	if err := json.Unmarshal([]byte(c.Request.PostFormValue("memberids")), &memberdata); err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 
 	var Memberids []int
@@ -885,7 +886,7 @@ func MultiSelectDeleteMember(c *gin.Context) {
 		recordsPerPage := Limit
 		totalPages := (int(totalRecords) + recordsPerPage - 1) / recordsPerPage
 
-		fmt.Println(totalPages, "totalpagesss")
+		logger.Info(fmt.Sprintf("%v", totalPages, "totalpagesss"))
 
 		currentPage := 1
 		if pageno != "" {
@@ -916,7 +917,7 @@ func MultiSelectMembersStatus(c *gin.Context) {
 	)
 
 	if err := json.Unmarshal([]byte(c.Request.PostFormValue("memberids")), &memberdata); err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 
 	for _, val := range memberdata {
@@ -1119,9 +1120,9 @@ func GetMemberProfileByMemberId(c *gin.Context) {
 	}
 
 	currenttime := time.Now().In(TZONE).Format("02 Jan 2006")
-	fmt.Println("dsfdsfs", member)
+	logger.Info(fmt.Sprintf("%v", "dsfdsfs", member))
 
-	fmt.Println("final")
+	logger.Info("final")
 
 	json.NewEncoder(c.Writer).Encode(gin.H{"member": member, "memberprofile": memberprof, "flg": true, "currenttime": currenttime})
 

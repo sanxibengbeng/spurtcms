@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	csrf "github.com/utrack/gin-csrf"
+	"spurt-cms/logger"
 )
 
 func LanguageList(c *gin.Context) {
@@ -115,7 +116,7 @@ func SetDefaultLanguage(c *gin.Context) {
 		c.SetCookie("lang", "", 3600, "", "", false, false)
 	}
 
-	fmt.Println("isDefault", isDefault)
+	logger.Info(fmt.Sprintf("%v", "isDefault", isDefault))
 
 	editedLang, err := models.SetDefaultLang(langId, isDefault, TenantId)
 	if err != nil {
@@ -432,10 +433,10 @@ func SetDefaultLanguage(c *gin.Context) {
 // 	} else {
 
 // 		prefixEndIndex := strings.Index(langData, "=")
-// 		fmt.Println("prefix", prefixEndIndex)
+// 		logger.Info(fmt.Sprintf("%v", "prefix", prefixEndIndex))
 
 // 		prefixRemovedPath := langData[prefixEndIndex+1:]
-// 		fmt.Println("prefixRemoved", prefixRemovedPath)
+// 		logger.Info(fmt.Sprintf("%v", "prefixRemoved", prefixRemovedPath))
 
 // 		editLanguage.ImagePath = prefixRemovedPath
 // 	}
@@ -543,7 +544,7 @@ func SetDefaultLanguage(c *gin.Context) {
 // 	//     return
 // 	// }
 
-// 	// fmt.Println("language json deleted successfully!")
+// 	// logger.Info("language json deleted successfully!")
 
 // 	language.Id = languageId
 // 	language.IsDeleted = 1
@@ -639,7 +640,7 @@ func SetDefaultLanguage(c *gin.Context) {
 // 		ErrorLog.Printf("Multiple language delete unmarshall error: %s", err)
 // 	}
 
-// 	fmt.Println("languageData", languagedata)
+// 	logger.Info(fmt.Sprintf("%v", "languageData", languagedata))
 
 // 	var languageids []int
 
@@ -648,7 +649,7 @@ func SetDefaultLanguage(c *gin.Context) {
 // 		languageids = append(languageids, languageid)
 // 	}
 
-// 	fmt.Println("langaugeIds", languageids)
+// 	logger.Info(fmt.Sprintf("%v", "langaugeIds", languageids))
 
 // 	var language models.TblLanguage
 

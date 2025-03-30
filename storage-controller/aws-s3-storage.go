@@ -9,6 +9,7 @@ import (
 	"log"
 	"mime/multipart"
 	"os"
+	"spurt-cms/logger"
 	"spurt-cms/models"
 	"strconv"
 	"strings"
@@ -34,13 +35,11 @@ type S3Service struct {
 }
 
 func GetSelectedType() (storagetyp models.TblStorageType, err error) {
-
-	storagetype, err := models.GetStorageValue(TenantId)
+	// Use environment variables instead of database
+	storagetype, err := GetStorageConfigFromEnv()
 
 	if err != nil {
-
-		fmt.Println(err)
-
+		logger.Error("Failed to get storage type from environment", logger.WithError(err))
 		return models.TblStorageType{}, err
 	}
 
@@ -181,7 +180,7 @@ func UploadFileS3(file multipart.File, fileHeader *multipart.FileHeader, filePat
 
 	filename := filePath + fileHeader.Filename
 
-	fmt.Println("fileName", filename)
+	logger.Debug("Uploading file to S3", logger.WithField("filename", filename))
 
 	// Create an uploader with the session and default options
 	uploader := s3manager.NewUploader(sess)
@@ -198,13 +197,20 @@ func UploadFileS3(file multipart.File, fileHeader *multipart.FileHeader, filePat
 		return fmt.Errorf("failed to upload file, %v", err)
 	}
 
-	fmt.Printf("file uploaded to, %s\n", aws.StringValue(&result.Location))
+	logger.Info("File uploaded successfully", logger.WithField("location", aws.StringValue(&result.Location)))
 
 	return nil
 }
 
 /*upload files from s3 */
 func UploadCropImageS3(fileName string, filePath string, imagebyte []byte) error {
+	// Set AWS credentials
+	SetS3value()
+	
+	// Validate AWS credentials
+	if AWSID == "" || AWSKEY == "" || AWSREGION == "" || AWSBUCKET == "" {
+		return fmt.Errorf("AWS credentials are not properly configured. Please check your environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION, AWS_BUCKET")
+	}
 
 	sess := CreateS3Sess()
 
@@ -222,13 +228,12 @@ func UploadCropImageS3(fileName string, filePath string, imagebyte []byte) error
 	})
 
 	if err != nil {
-
 		if aerr, ok := err.(awserr.Error); ok {
-
-			return fmt.Errorf("failed to upload file, %v", aerr.Message())
+			return fmt.Errorf("AWS S3 error: %v (code: %s)", aerr.Message(), aerr.Code())
 		}
+		return fmt.Errorf("failed to upload file to S3: %v", err)
 	}
-	fmt.Println("file uploaded to", aws.StringValue(&result.Location), result)
+	logger.Info("File uploaded successfully", logger.WithField("location", aws.StringValue(&result.Location)))
 
 	return nil
 }
@@ -239,9 +244,9 @@ func CreateFolderToS3(foldername string, folderpath string) (folderPath string, 
 
 		svc, _ := CreateS3Session()
 
-		// fmt.Println("inside folder create s3", folderpath+foldername)
+		// logger.Info(fmt.Sprintf("%v", "inside folder create s3", folderpath+foldername))
 
-		put, err := svc.PutObject(&s3.PutObjectInput{
+		_, err := svc.PutObject(&s3.PutObjectInput{
 			Bucket: aws.String(AWSBUCKET),
 			Key:    aws.String(folderpath + foldername),
 			Body:   bytes.NewReader(nil),
@@ -251,7 +256,7 @@ func CreateFolderToS3(foldername string, folderpath string) (folderPath string, 
 			return "", fmt.Errorf("failed to create folder, %v", err)
 		}
 
-		fmt.Printf("create folder to, %s\n", put)
+		logger.Info("Folder created successfully", logger.WithField("folder", folderpath+foldername))
 
 		var s3Path = folderPath + foldername + "/"
 
@@ -272,13 +277,14 @@ func DeleteS3Files(filename string) error {
 	})
 
 	if err != nil {
-
-		fmt.Printf("Error deleting object %s: %s\n", filename, err)
-
+		logger.Error("Error deleting S3 object", logger.WithFields(map[string]any{
+			"filename": filename,
+			"error":    err.Error(),
+		}))
 		return err
 	}
 
-	fmt.Printf("Object %s deleted successfully!\n", filename)
+	logger.Info("Object deleted successfully", logger.WithField("filename", filename))
 
 	return nil
 }
@@ -293,9 +299,10 @@ func GetObjectFromS3(key string) (*s3.GetObjectOutput, error) {
 	})
 
 	if err != nil {
-
-		fmt.Printf("Error get object %s: %s\n", key, err)
-
+		logger.Error("Error getting S3 object", logger.WithFields(map[string]any{
+			"key":   key,
+			"error": err.Error(),
+		}))
 		return nil, err
 	}
 
@@ -341,7 +348,7 @@ func StoreS3Base64(base64Image string, filepath string, key string) error {
 		return fmt.Errorf("failed to upload file, %v", err)
 	}
 
-	fmt.Printf("file uploaded to, %s\n", aws.StringValue(&result.Location))
+	logger.Info("File uploaded successfully", logger.WithField("location", aws.StringValue(&result.Location)))
 
 	return nil
 
@@ -400,6 +407,11 @@ func RenameFileS3(oldFolderName, newFolderName string) error {
 			log.Printf("Failed to copy object %s to %s: %v", oldKey, newKey, err)
 			return err
 		}
+		
+		logger.Debug("Copied object", logger.WithFields(map[string]any{
+			"from": oldKey,
+			"to":   newKey,
+		}))
 	}
 
 	for _, item := range result.Contents {
@@ -440,7 +452,7 @@ func DeleteS3FolderAndContents(folderName string) error {
 		if err != nil {
 			return fmt.Errorf("error deleting object %s: %s", *item.Key, err)
 		}
-		fmt.Printf("Deleted object: %s\n", *item.Key)
+		logger.Debug("Deleted object", logger.WithField("key", *item.Key))
 	}
 
 	_, err = svc.DeleteObject(&s3.DeleteObjectInput{
@@ -451,6 +463,6 @@ func DeleteS3FolderAndContents(folderName string) error {
 		return fmt.Errorf("error deleting folder %s: %s", folderName, err)
 	}
 
-	fmt.Printf("Deleted folder: %s\n", folderName)
+	logger.Info("Folder deleted successfully", logger.WithField("folder", folderName))
 	return nil
 }

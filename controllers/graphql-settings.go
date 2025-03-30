@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	csrf "github.com/utrack/gin-csrf"
+	"spurt-cms/logger"
 )
 
 func GraphqlTokenApi(c *gin.Context) {
@@ -182,7 +183,7 @@ func UpdateGraphqlToken(c *gin.Context) {
 func DeleteToken(c *gin.Context) {
 
 	var id, _ = strconv.Atoi(c.Param("id"))
-	fmt.Println("id", id)
+	logger.Info(fmt.Sprintf("%v", "id", id))
 	var deletedon, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	if err := models.DeleteApiToken(id, c.GetInt("userid"), deletedon, TenantId); err != nil {
@@ -216,7 +217,7 @@ func MultiDeleteGraphqlToken(c *gin.Context) {
 		ErrorLog.Printf("delete multiple entry error: %s", err)
 	}
 
-	fmt.Println(tokenIds, "tokenidesss")
+	logger.Info(fmt.Sprintf("%v", tokenIds, "tokenidesss"))
 
 	for _, ids := range tokenIds {
 		intIds, _ := strconv.Atoi(ids)
@@ -225,7 +226,7 @@ func MultiDeleteGraphqlToken(c *gin.Context) {
 	}
 
 	pageno := c.PostForm("page")
-	fmt.Println("pageNonnnn", pageno)
+	logger.Info(fmt.Sprintf("%v", "pageNonnnn", pageno))
 
 	var url string
 

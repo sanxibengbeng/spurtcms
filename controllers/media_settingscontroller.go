@@ -1,12 +1,12 @@
 package controllers
 
 import (
-	"fmt"
 	"spurt-cms/models"
 
 	"github.com/gin-gonic/gin"
 	csrf "github.com/utrack/gin-csrf"
 	"gorm.io/datatypes"
+	"spurt-cms/logger"
 )
 
 func MediaSettings(c *gin.Context) {
@@ -18,7 +18,7 @@ func MediaSettings(c *gin.Context) {
 	Storagetype, err := models.GetStorageValue(TenantId)
 
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 
 	var aws models.AWS
@@ -68,7 +68,7 @@ func MediaStorageUpdate(c *gin.Context) {
 	_, err := models.UpdateStorageType(Stype, TenantId)
 
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 		c.SetCookie("get-toast", ErrInternalServerError, 3600, "", "", false, false)
 		c.SetCookie("Alert-msg", "success", 3600, "", "", false, false)
 		c.Redirect(301, "/media/settings/")

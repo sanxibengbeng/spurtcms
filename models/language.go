@@ -1,8 +1,8 @@
 package models
 
 import (
-	"fmt"
 	"time"
+	"spurt-cms/logger"
 )
 
 type TblLanguage struct {
@@ -362,7 +362,11 @@ func MultiSelectLanguageisactive(langData *TblLanguage, id []int, tenantid int) 
 }
 
 func SetDefaultLang(langId, defaultVal, tenantId int) (language TblLanguage, err error) {
-	fmt.Println("Seumm")
+	logger.Debug("Setting default language", logger.WithFields(map[string]any{
+		"langId": langId,
+		"defaultVal": defaultVal,
+		"tenantId": tenantId,
+	}))
 
 	if defaultVal != 1 {
 

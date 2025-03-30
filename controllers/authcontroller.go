@@ -106,7 +106,7 @@ func SendLinkForForgotPass(c *gin.Context) {
 		"twitter":       twitter,
 	}
 
-	fmt.Println(user.Username, "isernameee")
+	logger.Info(fmt.Sprintf("%v", user.Username, "isernameee"))
 	var wg sync.WaitGroup
 
 	wg.Add(1)
@@ -139,7 +139,7 @@ func SetNewPassword(c *gin.Context) {
 			return
 		}
 
-		fmt.Println("checkstatus")
+		logger.Info("checkstatus")
 		c.SetCookie("pass-change", "Password Updated Successfully", 3600, "", "", false, false)
 		c.SetCookie("Alert-msg", "success", 3600, "", "", false, false)
 		c.Redirect(301, "/")

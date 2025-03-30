@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  spurtcms:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: spurtcms
+    restart: unless-stopped
+    ports:
+      - "8082:8082"  # 主应用端口
+      - "8083:8083"  # 预览端口
+      - "8085:8084"  # GraphQL 端口 (修改为8085避免冲突)
+    volumes:
+      - ./static_files:/app/storage  # 静态文件映射
+      - ./.env.docker:/app/.env  # 环境变量配置
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_TYPE=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=spurtcms
+      - DB_USERNAME=spurtcms
+      - DB_PASSWORD=spurtcms_password
+      - DB_SSL_MODE=disable
+      - TIME_ZONE=Asia/Shanghai
+    networks:
+      - spurtcms_network
+
+  postgres:
+    image: postgres:14-alpine
+    container_name: spurtcms_postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=spurtcms
+      - POSTGRES_PASSWORD=spurtcms_password
+      - POSTGRES_DB=spurtcms
+      # 添加这个环境变量，允许任何主机连接
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - "5432:5432"
+    volumes:
+      # 使用命名卷而不是主机目录，避免权限问题
+      - postgres_data:/var/lib/postgresql/data
+      # 只有在首次运行时才会执行初始化脚本
+      - ./init-local-storage.sql:/docker-entrypoint-initdb.d/init-local-storage.sql  # 初始化脚本
+    networks:
+      - spurtcms_network
+    command: ["postgres", "-c", "listen_addresses=*"]
+
+networks:
+  spurtcms_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    # 使用外部卷，这样即使删除容器也不会丢失数据
+    external: false

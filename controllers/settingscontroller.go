@@ -14,18 +14,19 @@ import (
 	"github.com/spurtcms/team"
 	csrf "github.com/utrack/gin-csrf"
 	"golang.org/x/crypto/bcrypt"
+	"spurt-cms/logger"
 )
 
 func SettingView(c *gin.Context) {
 
 	menu := NewMenuController(c)
-	// 	fmt.Println("valmenemodule",menu.TblModule)
+	// 	logger.Info(fmt.Sprintf("%v", "valmenemodule",menu.TblModule))
 
 	// 	for _,val:= range menu.TblModule{
 	// 		if val.ModuleName=="Settings"{
 	// 			for _,val2:=range val.SubModule{
 
-	// fmt.Println("valmenemodule",val2)
+	// logger.Info(fmt.Sprintf("%v", "valmenemodule",val2))
 	// 			}
 	// 		}
 	// 	}
@@ -137,10 +138,10 @@ func UpdateProfile(c *gin.Context) {
 
 			tempString = tenantDetails.S3FolderName + tempString
 
-			err = storagecontroller.UploadCropImageS3(imageName, tempString, imageByte)
+			err = storagecontroller.UploadImage(imageName, tempString, imageByte)
 			if err != nil {
 
-				c.SetCookie("Alert-msg", "ERRORAWScredentialsnotfound", 3600, "", "", false, false)
+				c.SetCookie("Alert-msg", "ERRORStorageUploadFailed", 3600, "", "", false, false)
 				c.Redirect(301, "/settings/myprofile/")
 				return
 	
@@ -183,7 +184,7 @@ func UpdateProfile(c *gin.Context) {
 		StorageType:      storageType.SelectedType,
 	}
 
-	fmt.Println("Dha", Newuser)
+	logger.Info(fmt.Sprintf("%v", "Dha", Newuser))
 
 	err = NewTeamWP.UpdateMyUser(Newuser, userid, TenantId)
 	if err != nil {
@@ -201,7 +202,7 @@ func UpdateProfile(c *gin.Context) {
 
 func UptPassword(c *gin.Context) {
 
-	fmt.Println("checkpass")
+	logger.Info("checkpass")
 
 	userid := c.GetInt("userid")
 

@@ -17,6 +17,7 @@ import (
 	"github.com/spurtcms/team"
 	teamroles "github.com/spurtcms/team-roles"
 	csrf "github.com/utrack/gin-csrf"
+	"spurt-cms/logger"
 )
 
 var query models.QUERY
@@ -102,13 +103,13 @@ func Userlist(c *gin.Context) {
 		ErrorLog.Printf("Getting all rolelist data error : %s", rerr)
 	}
 
-	fmt.Println("role", roles)
+	logger.Info(fmt.Sprintf("%v", "role", roles))
 
 	loguserid, _ := c.Get("userid")
 
 	storagetype, err := GetSelectedType()
 	if err != nil {
-		fmt.Printf("member list getting storagetype error: %s", err)
+		logger.Info(fmt.Sprintf("member list getting storagetype error: %s", err))
 	}
 
 	roleidlog := c.GetInt("role")
@@ -150,14 +151,14 @@ func CreateUser(c *gin.Context) {
 	// 	var s3FolderName = "SuperAdminFolder"
 	// 	s3Path, err := storagecontroller.CreateFolderToS3(s3FolderName, "")
 	// 	if err != nil {
-	// 		fmt.Println("error creating a folder for super user in s3 bucket:", err)
+	// 		logger.Info(fmt.Sprintf("%v", "error creating a folder for super user in s3 bucket:", err))
 	// 		ErrorLog.Printf("error creating a folder for super user in s3 bucket: %v", err)
 	// 		return
 	// 	}
 
 	// 	err = NewTeam.UpdateS3FolderName(0, tenantDetails.Id, s3Path)
 	// 	if err != nil {
-	// 		fmt.Println("error updating folder path for super admin in Database:", err)
+	// 		logger.Info(fmt.Sprintf("%v", "error updating folder path for super admin in Database:", err))
 	// 		ErrorLog.Printf("error updating folder path for super admin in Database: %v", err)
 	// 		return
 	// 	}
@@ -203,10 +204,10 @@ func CreateUser(c *gin.Context) {
 
 			imagePath = userDetails.S3FolderName + imagePath
 
-			uerr := storagecontroller.UploadCropImageS3(imageName, imagePath, imageByte)
+			uerr := storagecontroller.UploadImage(imageName, imagePath, imageByte)
 			if uerr != nil {
 
-				c.SetCookie("Alert-msg", "ERRORAWScredentialsnotfound", 3600, "", "", false, false)
+				c.SetCookie("Alert-msg", "ERRORStorageUploadFailed", 3600, "", "", false, false)
 				c.Redirect(301, "/settings/users/")
 				return
 	
@@ -355,7 +356,7 @@ func CheckUsername(c *gin.Context) {
 
 	userid, _ := strconv.Atoi(c.PostForm("id"))
 	username := c.PostForm("username")
-	fmt.Println("username", username)
+	logger.Info(fmt.Sprintf("%v", "username", username))
 
 	_, err := NewTeam.CheckUsername(username, userid, TenantId)
 	if err != nil {
@@ -425,7 +426,7 @@ func UpdateUser(c *gin.Context) {
 
 	userid, _ := strconv.Atoi(c.PostForm("userid"))
 
-	fmt.Println("userId", userid)
+	logger.Info(fmt.Sprintf("%v", "userId", userid))
 
 	storagetype, err := GetSelectedType()
 	if err != nil {
@@ -445,7 +446,7 @@ func UpdateUser(c *gin.Context) {
 			ErrorLog.Printf("error get storage type error: %s", err)
 		}
 
-		fmt.Println("userDetails", userDetails)
+		logger.Info(fmt.Sprintf("%v", "userDetails", userDetails))
 
 		if imagedata != "" {
 
@@ -461,10 +462,10 @@ func UpdateUser(c *gin.Context) {
 
 			imagePath = userDetails.S3FolderName + imagePath
 
-			uerr := storagecontroller.UploadCropImageS3(imageName, imagePath, imageByte)
+			uerr := storagecontroller.UploadImage(imageName, imagePath, imageByte)
 			if uerr != nil {
 
-				c.SetCookie("Alert-msg", "ERRORAWScredentialsnotfound", 3600, "", "", false, false)
+				c.SetCookie("Alert-msg", "ERRORStorageUploadFailed", 3600, "", "", false, false)
 				c.Redirect(301, "/settings/users/")
 				return
 	
@@ -654,7 +655,7 @@ func CheckUserData(c *gin.Context) {
 	email := c.PostForm("email")
 	number := c.PostForm("mobile")
 
-	fmt.Println("reapt", userid, username, email, number)
+	logger.Info(fmt.Sprintf("%v", "reapt", userid, username, email, number))
 
 	_, err1 := NewTeam.CheckUsername(username, userid, TenantId)
 	_, _, err2 := NewTeam.CheckEmail(email, userid, TenantId)

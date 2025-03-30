@@ -86,17 +86,35 @@ DB_SSL_MODE=disable
 
 Successful completion of this step completes the database configuration for spurtCMS Admin application.
 
-### Step 3: Environment Variables for AWS S3
+### Storage Configuration
 
-spurtCMS application uses AWS S3 for file storage. You need to configure the following environment variables in your .env file:
+SpurtCMS supports multiple storage backends for file uploads:
+
+1. **Local Storage**: Files are stored in the local filesystem
+2. **AWS S3**: Files are stored in Amazon S3 buckets
+3. **Azure Storage**: (Coming soon)
+
+Configure your storage preferences in the `.env` file:
 
 ```
-AWS_ACCESS_KEY_ID=your-access-key-id
-AWS_SECRET_ACCESS_KEY=your-secret-access-key
-AWS_DEFAULT_REGION=your-region
-AWS_BUCKET_NAME=your-bucket-name
+# Storage Configuration
+# Options: local, aws, azure
+STORAGE_TYPE = 'local'
+STORAGE_LOCAL_PATH = './storage'
 
+# AWS S3 Configuration
+AWS_ACCESS_KEY_ID = ''
+AWS_SECRET_ACCESS_KEY = ''
+AWS_DEFAULT_REGION = ''
+AWS_BUCKET = ''
+
+# Azure Storage Configuration
+AZURE_STORAGE_ACCOUNT = ''
+AZURE_ACCOUNT_KEY = ''
+AZURE_CONTAINER_NAME = ''
 ```
+
+Successful completion of this step completes the storage configuration for spurtCMS Admin application.
 
 
 ### Step 4: Running the Project

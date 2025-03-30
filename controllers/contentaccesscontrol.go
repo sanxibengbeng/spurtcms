@@ -14,6 +14,7 @@ import (
 	mem "github.com/spurtcms/member"
 	memaccess "github.com/spurtcms/member-access"
 	csrf "github.com/utrack/gin-csrf"
+	"spurt-cms/logger"
 )
 
 
@@ -160,7 +161,7 @@ func NewContentAccess(c *gin.Context) {
 		translate, _ := TranslateHandler(c)
 
 
-		fmt.Println("check _is", TenantId)
+		logger.Info(fmt.Sprintf("%v", "check _is", TenantId))
 		ChannelDetails, err = ChannelConfig.GetChannelsWithEntries(TenantId) //get active channel&entries list
 		if err != nil {
 			ErrorLog.Printf("channel count error: %s", err)
@@ -189,7 +190,7 @@ func GrantContentAccessControl(c *gin.Context) {
 	entries := c.PostForm("entries")
 	memgrps := c.PostForm("memgrps")
 	userid := c.GetInt("userid")
-	fmt.Println("title", title, entries, memgrps)
+	logger.Info(fmt.Sprintf("%v", "title", title, entries, memgrps))
 
 
 	json.Unmarshal([]byte(memgrps), &memgrp_parse)
@@ -223,7 +224,7 @@ func GrantContentAccessControl(c *gin.Context) {
 		return
 	}
 	if permisison {
-		fmt.Println("idcheck", TenantId)
+		logger.Info(fmt.Sprintf("%v", "idcheck", TenantId))
 
 		acc, cerr := MemberaccessConfig.CreateAccessControl(title, userid, TenantId) //create contentaccess
 		if cerr != nil {

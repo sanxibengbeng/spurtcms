@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"fmt"
 	"os"
 	"spurt-cms/config"
 	"spurt-cms/controllers"
+	"spurt-cms/logger"
 	"spurt-cms/models"
 
 	"github.com/dgrijalva/jwt-go"
@@ -49,11 +49,11 @@ func JWTAuth() gin.HandlerFunc {
 			})
 			if err != nil {
 				if err == jwt.ErrSignatureInvalid {
-					fmt.Println(err)
+					logger.Error("Invalid JWT signature", logger.WithError(err))
 					return
 				}
 
-				fmt.Println(err)
+				logger.Error("JWT token validation failed", logger.WithError(err))
 				c.Abort()
 
 				c.Writer.Header().Set("Pragma", "no-cache")
@@ -66,7 +66,7 @@ func JWTAuth() gin.HandlerFunc {
 				return
 			}
 			if !tkn.Valid {
-				fmt.Println(tkn)
+				logger.Warn("Invalid token detected", logger.WithField("token", tkn))
 				return
 			}
 

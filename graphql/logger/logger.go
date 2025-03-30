@@ -9,7 +9,7 @@ import (
 var (
 	LogFilePath = "graphql/logs/errors.log"
 
-	logger *Logger
+	graphqlLogger *GraphQLLogger
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 	ErrorLevel
 )
 
-type Logger struct {
+type GraphQLLogger struct {
 	Level       int
 	InfoLogger  *log.Logger
 	WarnLogger  *log.Logger
@@ -36,16 +36,13 @@ func init() {
 		makErr := os.MkdirAll("graphql/log/", 0777)
 
 		if makErr != nil {
-
-			fmt.Println(makErr)
-
+			fmt.Printf("Error creating logs directory: %v\n", makErr)
 		}
 
 		_, err = os.Create(LogFilePath)
 
 		if err != nil {
-
-			fmt.Printf("failed to create log file: %v\n", err)
+			fmt.Printf("Failed to create log file: %v\n", err)
 		}
 
 		fmt.Println("Created new log file")
@@ -54,11 +51,10 @@ func init() {
 	LogFile, err = os.OpenFile(LogFilePath, os.O_APPEND|os.O_WRONLY, 0666)
 
 	if err != nil {
-
-		fmt.Printf("failed to open log file: %v\n", err)
+		fmt.Printf("Failed to open log file: %v\n", err)
 	}
 
-	logger = &Logger{
+	graphqlLogger = &GraphQLLogger{
 		Level:       InfoLevel,
 		InfoLogger:  log.New(LogFile, "INFO ", log.LstdFlags|log.Lshortfile),
 		WarnLogger:  log.New(LogFile, "WARN ", log.LstdFlags|log.Lshortfile),
@@ -68,9 +64,9 @@ func init() {
 }
 
 func ErrorLog() *log.Logger {
-	return logger.ErrorLogger
+	return graphqlLogger.ErrorLogger
 }
 
 func WarnLog() *log.Logger {
-	return logger.ErrorLogger
+	return graphqlLogger.ErrorLogger
 }

@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"spurt-cms/models"
 	"strconv"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/spurtcms/auth"
 	chn "github.com/spurtcms/channels"
 	csrf "github.com/utrack/gin-csrf"
+	"spurt-cms/logger"
 )
 
 var CurrentPage int
@@ -223,7 +223,7 @@ func CreateChannel(c *gin.Context) {
 		Entry := "Entries"
 		moduleid, err := models.Entryid(Entry, TenantId)
 		if err != nil {
-			fmt.Println(err)
+			logger.Error("Error occurred", logger.WithError(err))
 		}
 
 		newchannel, cerr := ChannelConfig.CreateChannel(chn.ChannelCreate{ChannelName: channelname, ChannelDescription: channeldesc, CategoryIds: categoryvalue, CreatedBy: userid}, moduleid, TenantId)

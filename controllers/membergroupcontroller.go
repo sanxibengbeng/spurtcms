@@ -10,6 +10,7 @@ import (
 	"github.com/spurtcms/auth"
 	mem "github.com/spurtcms/member"
 	csrf "github.com/utrack/gin-csrf"
+	"spurt-cms/logger"
 )
 
 type memfilter struct {
@@ -276,7 +277,7 @@ func DeleteMemberGroup(c *gin.Context) {
 		url = "/membersgroup?page=" + strconv.Itoa(totalPages)
 	} 
 
-	fmt.Println("url",url)
+	logger.Info(fmt.Sprintf("%v", "url",url))
 		if err != nil {
 			c.SetCookie("Alert-msg", ErrInternalServerError, 3600, "", "", false, false)
 			c.SetCookie("Alert-msg", "alert", 3600, "", "", false, false)
@@ -367,7 +368,7 @@ func MultiSelectDeleteMembergroup(c *gin.Context) {
 	)
 
 	if err := json.Unmarshal([]byte(c.Request.PostFormValue("memberids")), &memberdata); err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 
 	for _, val := range memberdata {
@@ -439,7 +440,7 @@ func MultiSelectMembersgroupStatus(c *gin.Context) {
 	)
 
 	if err := json.Unmarshal([]byte(c.Request.PostFormValue("memberids")), &memberdata); err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 
 	for _, val := range memberdata {
@@ -506,7 +507,7 @@ func Chkmemgrphavemember(c *gin.Context) {
 
 
 	if err := json.Unmarshal([]byte(c.Request.PostFormValue("membergrpids")), &membergrpdata); err != nil {
-		fmt.Println(err)
+		logger.Error("Error occurred", logger.WithError(err))
 	}
 	for _, val := range membergrpdata {
 		memberid, _ := strconv.Atoi(val["memberid"])

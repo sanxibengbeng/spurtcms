@@ -12,6 +12,7 @@ import (
 	"github.com/spurtcms/auth"
 	cat "github.com/spurtcms/categories"
 	csrf "github.com/utrack/gin-csrf"
+	"spurt-cms/logger"
 )
 
 var CategoriesImagepath string
@@ -416,14 +417,14 @@ func AddSubCategory(c *gin.Context) {
 		if imagedata != "" {
 			imageName, imagePath, imageByte, err = ConvertBase64toByte(imagedata, "categories/addcategory")
 			if err != nil {
-				fmt.Println(err)
+				logger.Error("Error occurred", logger.WithError(err))
 			}
 
 			imagePath = tenantDetails.S3FolderName + imagePath
 
-			uerr := storagecontroller.UploadCropImageS3(imageName, imagePath, imageByte)
+			uerr := storagecontroller.UploadImage(imageName, imagePath, imageByte)
 			if uerr != nil {
-				c.SetCookie("Alert-msg", "ERRORAWScredentialsnotfound", 3600, "", "", false, false)
+				c.SetCookie("Alert-msg", "ERRORStorageUploadFailed", 3600, "", "", false, false)
 				c.Redirect(301, "/categories/")
 				return
 			}
@@ -541,14 +542,14 @@ func UpdateSubCategory(c *gin.Context) {
 		if CategoriesImagepath != imagedata {
 			imageName, imagePath, imageByte, err = ConvertBase64toByte(imagedata, "categories/addcategory")
 			if err != nil {
-				fmt.Println(err)
+				logger.Error("Error occurred", logger.WithError(err))
 			}
 
 			imagePath = tenantDetails.S3FolderName + imagePath
 
-			uerr := storagecontroller.UploadCropImageS3(imageName, imagePath, imageByte)
+			uerr := storagecontroller.UploadImage(imageName, imagePath, imageByte)
 			if uerr != nil {
-				c.SetCookie("Alert-msg", "ERRORAWScredentialsnotfound", 3600, "", "", false, false)
+				c.SetCookie("Alert-msg", "ERRORStorageUploadFailed", 3600, "", "", false, false)
 				c.Redirect(301, "/categories/")
 				return
 			}
