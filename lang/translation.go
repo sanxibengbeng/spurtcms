@@ -1220,82 +1220,119 @@ func LoadTranslation(filepath string) (Translation, error) {
 }
 
 func TranslateHandler(c *gin.Context) {
-
+	// Get the path to language JSON files
 	json_folder := os.Getenv("LOCAL_LANGUAGE_PATH")
-
-	lan, _ := c.Cookie("lang")
-
-	userDetails, err := GetRequestScopedTenantDetails(c)
-
-	if err != nil {
-
-		log.Println(err)
-	}
-
+	
+	// Default language file path (fallback)
+	defaultLangPath := json_folder + "en.json"
+	
+	// Try to get language from cookie
+	lan, cookieErr := c.Cookie("lang")
+	
+	// Get user details to determine default language
+	userDetails, userErr := GetRequestScopedTenantDetails(c)
+	
+	// Initialize default language object
 	var defaultLanguage models.TblLanguage
-
-	err = models.GetLanguageById(&defaultLanguage, userDetails.DefaultLanguageId)
-
+	var defaultLangErr error
+	
+	// Try to get default language from user settings if user details are available
+	if userErr == nil {
+		defaultLangErr = models.GetLanguageById(&defaultLanguage, userDetails.DefaultLanguageId)
+		if defaultLangErr != nil {
+			log.Println("Error getting default language:", defaultLangErr)
+		}
+	}
+	
+	// If no cookie is set or cookie value is empty, use default language
+	if cookieErr != nil || lan == "" {
+		// Try to load translation from user's default language
+		if userErr == nil && defaultLangErr == nil {
+			translation, err := LoadTranslation(defaultLanguage.JsonPath)
+			if err == nil {
+				// Successfully loaded user's default language
+				c.Set("currentLanguage", defaultLanguage)
+				c.Set("translation", translation)
+				c.Next()
+				return
+			}
+			log.Println("Failed to load user's default language:", err)
+		}
+		
+		// Fallback to English
+		translation, err := LoadTranslation(defaultLangPath)
+		if err != nil {
+			log.Println("Failed to load fallback English language:", err)
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		
+		// Set English as current language
+		c.Set("currentLanguage", models.TblLanguage{JsonPath: defaultLangPath})
+		c.Set("translation", translation)
+		c.Next()
+		return
+	}
+	
+	// Cookie exists, try to load the specified language
+	langId, parseErr := strconv.Atoi(lan)
+	if parseErr != nil {
+		log.Println("Invalid language ID in cookie:", parseErr)
+		// Fallback to default language
+		fallbackToDefault(c, defaultLanguage, defaultLangPath)
+		return
+	}
+	
+	// Try to get language by ID
+	var language models.TblLanguage
+	err := models.GetLanguageById(&language, langId)
 	if err != nil {
-
-		log.Println(err)
+		log.Println("Error getting language by ID:", err)
+		// Fallback to default language
+		fallbackToDefault(c, defaultLanguage, defaultLangPath)
+		return
 	}
-
-	if lan == "" {
-
-		translation, err := LoadTranslation(defaultLanguage.JsonPath)
-
-		if err != nil {
-
-			translation, err = LoadTranslation(json_folder + "en.json")
-
-			if err != nil {
-
-				c.AbortWithError(http.StatusInternalServerError, err)
-
-				return
-			}
-		}
-
-		c.Set("currentLanguage", defaultLanguage)
-
-		c.Set("translation", translation)
-
-	} else {
-
-		var language models.TblLanguage
-
-		langId, _ := strconv.Atoi(lan)
-
-		err := models.GetLanguageById(&language, langId)
-
-		if err != nil {
-
-			log.Println(err)
-		}
-
-		translation, err := LoadTranslation(language.JsonPath)
-
-		if err != nil {
-
-			translation, err = LoadTranslation(defaultLanguage.JsonPath)
-
-			if err != nil {
-
-				c.AbortWithError(http.StatusInternalServerError, err)
-
-				return
-			}
-		}
-
-		c.Set("currentLanguage", language)
-
-		c.Set("translation", translation)
-
+	
+	// Try to load translation for the specified language
+	translation, err := LoadTranslation(language.JsonPath)
+	if err != nil {
+		log.Println("Failed to load specified language:", err)
+		// Fallback to default language
+		fallbackToDefault(c, defaultLanguage, defaultLangPath)
+		return
 	}
-
+	
+	// Successfully loaded specified language
+	c.Set("currentLanguage", language)
+	c.Set("translation", translation)
 	c.Next()
+}
 
+// Helper function to fallback to default language
+func fallbackToDefault(c *gin.Context, defaultLanguage models.TblLanguage, defaultLangPath string) {
+	// Try user's default language first if available
+	if defaultLanguage.JsonPath != "" {
+		translation, err := LoadTranslation(defaultLanguage.JsonPath)
+		if err == nil {
+			c.Set("currentLanguage", defaultLanguage)
+			c.Set("translation", translation)
+			c.Next()
+			return
+		}
+		log.Println("Failed to load default language, falling back to English:", err)
+	}
+	
+	// Final fallback to English
+	translation, err := LoadTranslation(defaultLangPath)
+	if err != nil {
+		log.Println("Failed to load English language:", err)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	
+	c.Set("currentLanguage", models.TblLanguage{JsonPath: defaultLangPath})
+	c.Set("translation", translation)
+	c.Next()
 }
 
 func GetRequestScopedTenantDetails(c *gin.Context) (team.TblUser, error) {

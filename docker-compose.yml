@@ -14,8 +14,7 @@ services:
     volumes:
       - ./static_files:/app/storage  # Static files mapping
       - ./.env.docker:/app/.env  # Environment variables configuration
-      #- ./public:/app/public  # Map local public directory for JS/CSS debugging
-      - /Users/zhangyulong/projects/origin-spurtcms/public/:/app/public  # Map local public directory for JS/CSS debugging
+      - ./public:/app/public  # Map local public directory for JS/CSS debugging
     depends_on:
       - postgres
     environment:
