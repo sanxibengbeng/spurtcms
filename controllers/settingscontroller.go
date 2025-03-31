@@ -57,8 +57,10 @@ func MyProfile(c *gin.Context) {
 	if users.ProfileImagePath != "" {
 
 		if users.StorageType == "local" {
-			users.ProfileImagePath = "/" + users.ProfileImagePath
-
+			// Fix for double slash issue - check if path already starts with a slash
+			if !strings.HasPrefix(users.ProfileImagePath, "/") {
+				users.ProfileImagePath = "/" + users.ProfileImagePath
+			}
 		} else if users.StorageType == "aws" {
 			users.ProfileImagePath = "/image-resize?name=" + users.ProfileImagePath
 		}

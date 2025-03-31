@@ -365,7 +365,10 @@ func NewMenuController(c *gin.Context) USR {
 
 	if user.ProfileImagePath != "" {
 		if user.StorageType == "local" {
-			user.ProfileImagePath = "/" + user.ProfileImagePath
+			// Fix for double slash issue - check if path already starts with a slash
+			if !strings.HasPrefix(user.ProfileImagePath, "/") {
+				user.ProfileImagePath = "/" + user.ProfileImagePath
+			}
 		} else if user.StorageType == "aws" {
 			user.ProfileImagePath = "/image-resize?name=" + user.ProfileImagePath
 		}

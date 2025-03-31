@@ -80,3 +80,5 @@ __debug_bin
 
 # Docker volumes
 docker-volumes/
+db
+static_files

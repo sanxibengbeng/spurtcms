@@ -8,12 +8,14 @@ services:
     container_name: spurtcms
     restart: unless-stopped
     ports:
-      - "8082:8082"  # 主应用端口
-      - "8083:8083"  # 预览端口
-      - "8085:8084"  # GraphQL 端口 (修改为8085避免冲突)
+      - "8082:8082"  # Main application port
+      - "8083:8083"  # Preview port
+      - "8085:8084"  # GraphQL port (changed to 8085 to avoid conflicts)
     volumes:
-      - ./static_files:/app/storage  # 静态文件映射
-      - ./.env.docker:/app/.env  # 环境变量配置
+      - ./static_files:/app/storage  # Static files mapping
+      - ./.env.docker:/app/.env  # Environment variables configuration
+      #- ./public:/app/public  # Map local public directory for JS/CSS debugging
+      - /Users/zhangyulong/projects/origin-spurtcms/public/:/app/public  # Map local public directory for JS/CSS debugging
     depends_on:
       - postgres
     environment:
@@ -36,15 +38,13 @@ services:
       - POSTGRES_USER=spurtcms
       - POSTGRES_PASSWORD=spurtcms_password
       - POSTGRES_DB=spurtcms
-      # 添加这个环境变量，允许任何主机连接
+      # Allow connections from any host
       - POSTGRES_HOST_AUTH_METHOD=trust
     ports:
       - "5432:5432"
     volumes:
-      # 使用命名卷而不是主机目录，避免权限问题
+      # Use named volume for database storage
       - postgres_data:/var/lib/postgresql/data
-      # 只有在首次运行时才会执行初始化脚本
-      - ./init-local-storage.sql:/docker-entrypoint-initdb.d/init-local-storage.sql  # 初始化脚本
     networks:
       - spurtcms_network
     command: ["postgres", "-c", "listen_addresses=*"]
@@ -55,5 +55,5 @@ networks:
 
 volumes:
   postgres_data:
-    # 使用外部卷，这样即使删除容器也不会丢失数据
-    external: false
+    # Using a regular Docker volume instead of a bind mount
+    # This will let Docker manage permissions properly
